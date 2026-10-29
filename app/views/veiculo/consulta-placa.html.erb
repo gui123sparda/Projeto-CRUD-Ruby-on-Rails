@@ -1,0 +1,92 @@
+<% resultado = @resultado; proprietario_resultado = @proprietario_resultado; placa_pesquisada = @placa_pesquisada; placa_mercosul = @placa_mercosul; placa_moto = @placa_moto; placa_exibida = @placa_exibida; exibir_painel_consulta = @exibir_painel_consulta %>
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <%= csrf_meta_tags %>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Consulta de placas</title>
+    <link href="/css/daisyui.css" rel="stylesheet" type="text/css">
+    <link href="/css/app.css?v=correcoes-20261021-2" rel="stylesheet" type="text/css">
+    <script src="/js/consulta-placa.js?v=consulta-resultado-2" defer></script>
+</head>
+<body>
+    <%= render "includes/header" %>
+    <main class="page-shell">
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Consulta</p>
+                <h1>Consulta de placas</h1>
+                <p>Informe uma placa para ver o veículo e seu proprietário.</p>
+            </div>
+            <a class="btn btn-soft btn-neutral" href="/">← Voltar ao início</a>
+        </div>
+
+        <% if exibir_painel_consulta %>
+            <section class="card panel form-card consulta-painel" id="consulta-painel">
+                <div class="card-body">
+                    <form class="consulta-form" action="/veiculos.do" method="get" accept-charset="UTF-8">
+                        <input type="hidden" name="acao" value="consultarPlaca">
+                        <div class="field consulta-field">
+                            <label for="placa">Placa</label>
+                            <div class="consulta-controls">
+                                <input class="input" id="placa" name="placa" type="text" minlength="7" pattern="[A-Za-z]{3}-?[0-9][A-Za-z0-9][0-9]{2}" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-describedby="placa-instrucao" value="<%= h(placa_pesquisada) %>" placeholder="ABC1D23" required>
+
+                                <button class="btn btn-soft btn-success" type="submit">Consultar</button>
+                            </div>
+                            <small id="placa-instrucao" class="field-hint">Formato: ABC1234 ou ABC1D23.</small>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        <% end %>
+
+        <% if @erro != nil %>
+            <div class="alert alert-error related-link" role="alert"><%= h(@erro) %></div>
+        <% end %>
+        <% if @mensagem != nil %>
+            <div class="alert alert-info related-link" role="status"><%= h(@mensagem) %></div>
+        <% end %>
+        <% if resultado != nil %>
+            <section class="card panel consulta-resultado" id="consulta-resultado" aria-labelledby="resultado-titulo">
+                <div class="card-body">
+                    <h2 class="card-title" id="resultado-titulo">Resultado: <%= h(resultado.placa) %></h2>
+                    <figure class="placa-figure<%= placa_moto ? " placa-formato-moto" : "" %>">
+                        <div class="hover-3d placa-hover-3d" style="--placa-proporcao:<%= placa_moto ? "200/170" : placa_mercosul ? "520/140" : "400/130" %>">
+                            <img class="placa-renderizada<%= placa_moto ? " moto" : "" %>" src="/placa-imagem.do?id=<%= resultado.id %>" alt="Representação ilustrativa da placa <%= h(placa_exibida) %>">
+                            <div aria-hidden="true"></div><div aria-hidden="true"></div><div aria-hidden="true"></div><div aria-hidden="true"></div>
+                            <div aria-hidden="true"></div><div aria-hidden="true"></div><div aria-hidden="true"></div><div aria-hidden="true"></div>
+                        </div>
+                        <figcaption>Representação ilustrativa da placa<%= placa_mercosul ? "; QR ilustrativo." : "; localidade do proprietário na faixa superior." %></figcaption>
+                    </figure>
+                    <h3>Veículo</h3>
+                    <dl class="consulta-grid">
+                        <div><dt>Placa</dt><dd><%= h(resultado.placa) %></dd></div>
+                        <div><dt>Tipo</dt><dd><%= resultado.tipo_rotulo %></dd></div>
+                        <div><dt>RENAVAM</dt><dd><%= h(resultado.renavam) %></dd></div>
+                        <div><dt>Chassi</dt><dd><%= h(resultado.chassi) %></dd></div>
+                        <div><dt>Ano de fabricação</dt><dd><%= resultado.ano_fabricacao %></dd></div>
+                    </dl>
+                    <h3>Proprietário</h3>
+                    <dl class="consulta-grid">
+                        <div><dt>Nome</dt><dd><%= h(proprietario_resultado.nome) %></dd></div>
+                        <div><dt>CPF/CNPJ</dt><dd><%= h(formatar_documento(proprietario_resultado.cpf_cnpj)) %></dd></div>
+                        <div><dt>Rua</dt><dd><%= h(proprietario_resultado.rua) %></dd></div>
+                        <div><dt>Número</dt><dd><%= h(proprietario_resultado.numero) %></dd></div>
+                        <div><dt>Complemento</dt><dd><%= h(proprietario_resultado.complemento) %></dd></div>
+                        <div><dt>Cidade</dt><dd><%= h(proprietario_resultado.cidade) %></dd></div>
+                        <div><dt>Estado</dt><dd><%= h(proprietario_resultado.estado) %></dd></div>
+                        <div><dt>CEP</dt><dd><%= h(formatar_cep(proprietario_resultado.cep)) %></dd></div>
+                    </dl>
+                    <div class="form-actions">
+                        <a class="btn btn-soft btn-error" href="/relatorio-veiculo.do?id=<%= resultado.id %>">Gerar Relatório</a>
+                        <a class="btn btn-soft btn-warning" href="/veiculos.do?acao=editar&amp;id=<%= resultado.id %>">Editar veículo</a>
+                        <a class="btn btn-soft btn-success" href="/proprietarios.do?acao=visualizar&amp;id=<%= proprietario_resultado.id %>">Ver proprietário</a>
+                        <a class="btn btn-soft btn-success" href="/proprietarios.do?acao=veiculos&amp;id=<%= proprietario_resultado.id %>">Veículos do proprietário</a>
+                    </div>
+                </div>
+            </section>
+        <% end %>
+    </main>
+</body>
+</html>

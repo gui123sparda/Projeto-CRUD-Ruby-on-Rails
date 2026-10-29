@@ -1,0 +1,83 @@
+<% caminho = @caminho; proprietario = @proprietario; empresa = @empresa %>
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <%= csrf_meta_tags %>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= empresa ? "Cadastro de empresa" : "Cadastro de proprietário" %></title>
+    <link href="/css/daisyui.css" rel="stylesheet" type="text/css">
+    <link href="/css/app.css" rel="stylesheet" type="text/css">
+    <script src="/js/cpf-cnpj.js" defer></script>
+    <script src="/js/cep.js" defer></script>
+</head>
+<body>
+    <%= render "includes/header" %>
+    <main class="page-shell">
+        <div class="page-header">
+            <div>
+                <p class="eyebrow"><%= empresa ? "Empresas" : "Proprietários" %></p>
+                <h1><%= empresa ? (proprietario.id == nil ? "Nova empresa" : "Editar empresa") : (proprietario.id == nil ? "Novo proprietário" : "Editar proprietário") %></h1>
+                <p><%= empresa ? "Preencha os dados da empresa." : "Preencha os dados do proprietário." %></p>
+            </div>
+            <a class="btn btn-soft btn-neutral" href="/">← Voltar ao início</a>
+        </div>
+        <% if @erro != nil %>
+            <div class="alert alert-error" role="alert"><%= h(@erro) %></div>
+        <% end %>
+        <section class="card panel form-card">
+            <div class="card-body">
+                <form action="<%= caminho %>" method="post" accept-charset="UTF-8">
+                    <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+                    <input type="hidden" name="acao" value="salvar">
+                    <input type="hidden" name="id" value="<%= h(proprietario.id) %>">
+                    <input type="hidden" name="tipoPessoa" value="<%= empresa ? "PJ" : "PF" %>">
+                    <div class="form-actions"><button class="btn" type="button" data-gerar-ficticios="proprietario">Gerar dados fictícios</button><span class="field-hint" data-aviso-ficticios role="status"></span></div>
+                    <% if proprietario.id != nil %><p class="field-hint">O CPF/CNPJ é permanente e não pode ser alterado.</p><% end %>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="cpfCnpj">CPF/CNPJ</label>
+                            <input class="input" id="cpfCnpj" name="cpfCnpj" <%= (proprietario.id != nil ? "readonly aria-readonly=\"true\"" : "").html_safe %> type="text" autocapitalize="characters" autocomplete="off" value="<%= h(proprietario.cpf_cnpj) %>" maxlength="18" placeholder="CPF ou CNPJ alfanumérico" aria-describedby="documento-instrucao documento-status" required>
+                            <small id="documento-instrucao" class="field-hint">CPF: 11 dígitos. CNPJ: 12 caracteres alfanuméricos e 2 dígitos finais.</small>
+                            <small id="documento-status" class="field-hint" role="status" aria-live="polite"></small>
+                        </div>
+                        <div class="field">
+                            <label for="nome"><%= empresa ? "Razão social" : "Nome" %></label>
+                            <input class="input" id="nome" name="nome" value="<%= h(proprietario.nome) %>" maxlength="150" placeholder="<%= empresa ? "Razão social da empresa" : "Nome completo" %>" required>
+                        </div>
+                        <div class="field">
+                            <label for="cep">CEP</label>
+                            <input class="input" id="cep" name="cep" type="text" inputmode="numeric" autocomplete="postal-code" value="<%= h(proprietario.cep) %>" maxlength="9" placeholder="00000-000" aria-describedby="cep-status">
+                            <small id="cep-status" class="field-hint" role="status" aria-live="polite">Informe 8 dígitos para buscar o endereço.</small>
+                        </div>
+                        <div class="field field-wide">
+                            <label for="rua">Rua</label>
+                            <input class="input" id="rua" name="rua" autocomplete="address-line1" value="<%= h(proprietario.rua) %>" maxlength="150" placeholder="Nome da rua">
+                        </div>
+                        <div class="field">
+                            <label for="numero">Número</label>
+                            <input class="input" id="numero" name="numero" autocomplete="address-line2" value="<%= h(proprietario.numero) %>" maxlength="20" placeholder="Ex.: 123">
+                        </div>
+                        <div class="field">
+                            <label for="complemento">Complemento</label>
+                            <input class="input" id="complemento" name="complemento" value="<%= h(proprietario.complemento) %>" maxlength="255" placeholder="Ex.: apartamento 101">
+                        </div>
+                        <div class="field">
+                            <label for="cidade">Cidade</label>
+                            <input class="input" id="cidade" name="cidade" autocomplete="address-level2" value="<%= h(proprietario.cidade) %>" maxlength="100" placeholder="Nome da cidade">
+                        </div>
+                        <div class="field">
+                            <label for="estado">Estado (UF)</label>
+                            <input class="input" id="estado" name="estado" autocomplete="address-level1" value="<%= h(proprietario.estado) %>" maxlength="2" placeholder="CE">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-soft btn-primary" type="submit">Salvar</button>
+                        <a class="btn btn-soft btn-neutral" href="<%= caminho %>?tipoPessoa=<%= empresa ? "PJ" : "PF" %>">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

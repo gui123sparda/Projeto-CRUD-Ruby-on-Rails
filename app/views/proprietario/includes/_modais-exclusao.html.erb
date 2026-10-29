@@ -1,0 +1,31 @@
+
+<dialog id="modal-confirmar-exclusao" class="modal" aria-labelledby="titulo-confirmar-exclusao" aria-describedby="descricao-confirmar-exclusao">
+    <div class="modal-box">
+        <h2 id="titulo-confirmar-exclusao" class="text-lg font-bold">Confirmar exclusão lógica</h2>
+        <p id="descricao-confirmar-exclusao" class="py-4">Os dados serão preservados no histórico. Deseja inativar <strong id="exclusao-proprietario-nome"></strong>?</p>
+        <div class="modal-action">
+            <form method="dialog"><button class="btn" type="submit">Cancelar</button></form>
+            <button id="continuar-exclusao-proprietario" class="btn btn-error" type="button">Continuar</button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button type="submit">Fechar</button></form>
+</dialog>
+<dialog id="modal-confirmar-cascata" class="modal" aria-labelledby="titulo-confirmar-cascata" aria-describedby="exclusao-cascata-mensagem">
+    <div class="modal-box">
+        <h2 id="titulo-confirmar-cascata" class="text-lg font-bold text-error">Excluir proprietário e veículos?</h2>
+        <p id="exclusao-cascata-mensagem" class="py-4"></p>
+        <p>O proprietário e seus veículos sairão das consultas ativas. Os dados continuarão disponíveis no Histórico. Deseja continuar?</p>
+        <div class="modal-action">
+            <form method="dialog"><button class="btn" type="submit">Cancelar</button></form>
+            <form id="form-excluir-proprietario" action="<%= @caminho %>" method="post">
+                <input type="hidden" name="acao" value="excluir">
+                <input id="exclusao-proprietario-id" type="hidden" name="id">
+                <input id="exclusao-proprietario-cascata" type="hidden" name="confirmarCascata" value="false">
+                <input id="exclusao-proprietario-total-confirmado" type="hidden" name="totalVeiculosConfirmado" value="0">
+                <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+                <button class="btn btn-error" type="submit">Excluir proprietário e veículos</button>
+            </form>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button type="submit">Fechar</button></form>
+</dialog>

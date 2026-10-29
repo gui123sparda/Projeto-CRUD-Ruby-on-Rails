@@ -1,0 +1,75 @@
+<% total_veiculos = @total_veiculos; caminho = @caminho; proprietario = @proprietario; veiculo = @veiculo; empresa = @empresa; veiculos_proprietario = @veiculos_proprietario %>
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <%= csrf_meta_tags %>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= empresa ? "Dados da empresa" : "Dados do proprietário" %></title>
+    <link href="/css/daisyui.css" rel="stylesheet" type="text/css">
+    <link href="/css/app.css?v=correcoes-20261021-2" rel="stylesheet" type="text/css">
+    <script defer src="/js/exclusao-proprietario.js?v=exclusao-3"></script>
+</head>
+<body>
+    <%= render "includes/header" %>
+    <main class="page-shell">
+        <div class="page-header">
+            <div>
+                <p class="eyebrow"><%= empresa ? "Empresas" : "Pessoas físicas" %></p>
+                <h1><%= empresa ? "Dados da empresa" : "Dados do proprietário" %></h1>
+                <p><%= h(proprietario.nome) %></p>
+            </div>
+            <a class="btn btn-soft btn-neutral" href="<%= caminho %>?tipoPessoa=<%= empresa ? "PJ" : "PF" %>">← Voltar à lista</a>
+        </div>
+        <section class="card panel" aria-labelledby="dados-cadastro-titulo">
+            <div class="card-body">
+                <h2 class="card-title" id="dados-cadastro-titulo">Dados do cadastro</h2>
+                <dl class="consulta-grid">
+                    <div><dt>Tipo</dt><dd><%= empresa ? "Empresa" : "Pessoa física" %></dd></div>
+                    <div><dt><%= empresa ? "Razão social" : "Nome" %></dt><dd><%= h(proprietario.nome) %></dd></div>
+                    <div><dt><%= empresa ? "CNPJ" : "CPF" %></dt><dd><%= h(formatar_documento(proprietario.cpf_cnpj)) %></dd></div>
+                    <div class="consulta-wide"><dt>Endereço</dt><dd><%= h(formatar_endereco(proprietario)) %></dd></div>
+                    <div><dt>Veículos vinculados</dt><dd><%= total_veiculos %></dd></div>
+                </dl>
+                <div class="form-actions row-actions">
+                    <a class="btn btn-soft btn-error" href="/relatorio-proprietario.do?id=<%= proprietario.id %>">Dados do cadastro em PDF</a>
+                    <a class="btn" href="/relatorio-agrupado.do?idProprietario=<%= proprietario.id %>">Relatório completo com veículos</a>
+                    <a class="btn btn-soft btn-success" href="<%= caminho %>?acao=veiculos&amp;id=<%= proprietario.id %>">Ver veículos</a>
+                    <a class="btn btn-soft btn-warning" href="<%= caminho %>?acao=editar&amp;id=<%= proprietario.id %>">Editar cadastro</a>
+                    <button class="btn btn-error" type="button"
+                            data-excluir-proprietario
+                            data-id="<%= proprietario.id %>"
+                            data-nome="<%= h(proprietario.nome) %>"
+                            data-total-veiculos="<%= total_veiculos %>">Excluir</button>
+                </div>
+            </div>
+        </section>
+        <section class="card panel related-link" aria-labelledby="veiculos-proprietario-titulo">
+            <div class="card-body">
+                <h2 class="card-title" id="veiculos-proprietario-titulo">Veículos de <%= h(proprietario.nome) %> (<%= total_veiculos %>)</h2>
+                <% if veiculos_proprietario.empty? %>
+                    <p class="empty-state">Este proprietário não possui veículos ativos vinculados.</p>
+                <% else %>
+                <div class="owner-vehicles">
+                    <% veiculos_proprietario.each do |veiculo| %>
+                    <article class="card card-border owner-vehicle" data-veiculo-id="<%= veiculo.id %>">
+                        <div class="card-body">
+                            <h3 class="card-title"><%= h(veiculo.placa) %> · <%= veiculo.tipo_rotulo %></h3>
+                            <img class="owner-vehicle-plate" src="/placa-imagem.do?id=<%= veiculo.id %>" alt="Placa ilustrativa <%= h(veiculo.placa) %>" loading="lazy">
+                            <dl class="consulta-grid">
+                                <div><dt>Ano de fabricação</dt><dd><%= veiculo.ano_fabricacao %></dd></div>
+                                <div><dt>RENAVAM</dt><dd><%= h(veiculo.renavam) %></dd></div>
+                                <div class="consulta-wide"><dt>Chassi</dt><dd><%= h(veiculo.chassi) %></dd></div>
+                            </dl>
+                            <div class="card-actions"><a class="btn" href="/veiculos.do?acao=consultarPlaca&amp;placa=<%= h(veiculo.placa) %>">Consultar veículo</a></div>
+                        </div>
+                    </article>
+                    <% end %>
+                </div>
+                <% end %>
+            </div>
+        </section>
+    </main>
+    <%= render "proprietario/includes/modais-exclusao" %>
+</body>
+</html>

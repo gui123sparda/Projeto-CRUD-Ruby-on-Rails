@@ -1,0 +1,143 @@
+<% total_veiculos = @total_veiculos; total_carros = @total_carros; total_motos = @total_motos; total_proprietarios = @total_proprietarios; historico_proprietarios = @historico_proprietarios; escala_historico = @escala_historico; tipo_pessoa_historico = @tipo_pessoa_historico; percentual_carros = @percentual_carros %>
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <%= csrf_meta_tags %>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard · Treinamento CRUD</title>
+    <link rel="preload" href="/img/DETRAN.svg" as="image" type="image/svg+xml">
+    <link href="/css/daisyui.css" rel="stylesheet" type="text/css">
+    <link href="/css/app.css" rel="stylesheet" type="text/css">
+    <script>
+        try {
+            if (sessionStorage.getItem("introDetranExibida")) {
+                document.documentElement.classList.add("intro-vista");
+            } else {
+                sessionStorage.setItem("introDetranExibida", "true");
+            }
+        } catch (_) { /* A animação ainda termina pelo CSS se o armazenamento estiver indisponível. */ }
+    </script>
+</head>
+<body>
+    <div class="intro-overlay" aria-hidden="true">
+        <img class="intro-logo" src="/img/DETRAN.svg" alt="">
+    </div>
+    <%= render "includes/header" %>
+    <main class="page-shell">
+        <div class="dashboard-heading">
+            <div>
+                <p class="eyebrow">Painel de controle</p>
+                <h1>Dashboard</h1>
+                <p>Acompanhe os cadastros de veículos e proprietários.</p>
+            </div>
+        </div>
+        <section class="dashboard-metrics" aria-label="Indicadores gerais">
+            <div class="stats dashboard-metric">
+                <div class="stat">
+                    <div class="stat-figure dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></div>
+                    <div class="stat-title">Veículos</div>
+                    <div class="stat-value"><%= total_veiculos %></div>
+                    <div class="stat-desc">Total cadastrado</div>
+                </div>
+            </div>
+            <div class="stats dashboard-metric">
+                <div class="stat">
+                    <div class="stat-figure dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 15l1.5-5h11L19 15M4 15h16v3H4z"/><circle cx="7" cy="18" r="1"/><circle cx="17" cy="18" r="1"/></svg></div>
+                    <div class="stat-title">Carros</div>
+                    <div class="stat-value"><%= total_carros %></div>
+                    <div class="stat-desc">Veículos do tipo carro</div>
+                </div>
+            </div>
+            <div class="stats dashboard-metric">
+                <div class="stat">
+                    <div class="stat-figure dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5" cy="17" r="3"/><circle cx="19" cy="17" r="3"/><path d="M8 17h4l3-7h3M12 17l-3-7H7"/></svg></div>
+                    <div class="stat-title">Motos</div>
+                    <div class="stat-value"><%= total_motos %></div>
+                    <div class="stat-desc">Veículos do tipo moto</div>
+                </div>
+            </div>
+            <div class="stats dashboard-metric">
+                <div class="stat">
+                    <div class="stat-figure dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 2.5-6 7-6s7 2 7 6"/></svg></div>
+                    <div class="stat-title">Proprietários</div>
+                    <div class="stat-value"><%= total_proprietarios %></div>
+                    <div class="stat-desc">Pessoas e empresas</div>
+                </div>
+            </div>
+        </section>
+        <div class="dashboard-content-grid">
+            <section class="card panel dashboard-chart-card" aria-labelledby="historico-titulo">
+                <div class="card-body">
+                    <div class="dashboard-section-heading">
+                        <div>
+                            <p class="eyebrow">Atividade</p>
+                            <h2 class="card-title" id="historico-titulo">Proprietários por dia</h2>
+                            <p>Cadastros e alterações nos últimos 14 dias</p>
+                        </div>
+                        <span class="badge badge-ghost dashboard-period">14 dias</span>
+                    </div>
+                    <form class="dashboard-chart-filter" action="/" method="get">
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Tipo de proprietário</legend>
+                            <div class="dashboard-chart-filter-controls">
+                                <select class="select select-sm" name="tipoPessoa" aria-label="Filtrar histórico por tipo de proprietário">
+                                    <option value="" <%= tipo_pessoa_historico.empty? ? "selected" : "" %>>Todos</option>
+                                    <option value="PF" <%= (tipo_pessoa_historico == "PF") ? "selected" : "" %>>Pessoas físicas</option>
+                                    <option value="PJ" <%= (tipo_pessoa_historico == "PJ") ? "selected" : "" %>>Empresas</option>
+                                </select>
+                                <button class="btn btn-sm" type="submit">Filtrar</button>
+                            </div>
+                        </fieldset>
+                    </form>
+                    <div class="dashboard-chart-legend" aria-hidden="true">
+                        <span><i class="dashboard-legend-dot dashboard-legend-cadastros"></i> Cadastrados</span>
+                        <span><i class="dashboard-legend-dot dashboard-legend-alteracoes"></i> Alterados</span>
+                    </div>
+                    <div class="dashboard-chart-scroll">
+                        <div class="dashboard-chart" role="img" aria-label="Gráfico de proprietários cadastrados e alterados por dia nos últimos 14 dias. A tabela abaixo contém os valores exatos.">
+                            <% historico_proprietarios.each do |dia|; altura_cadastros = dia.cadastros.zero? ? 0 : [5, (dia.cadastros * 100.0 / escala_historico).round].max; altura_alteracoes = dia.alteracoes.zero? ? 0 : [5, (dia.alteracoes * 100.0 / escala_historico).round].max %>
+                            <div class="dashboard-chart-day">
+                                <div class="dashboard-chart-columns">
+                                    <span class="dashboard-chart-bar dashboard-chart-bar-cadastros" style="height: <%= altura_cadastros %>%" title="<%= dia.cadastros %> cadastrados em <%= dia.dia.strftime("%d/%m") %>"></span>
+                                    <span class="dashboard-chart-bar dashboard-chart-bar-alteracoes" style="height: <%= altura_alteracoes %>%" title="<%= dia.alteracoes %> alterados em <%= dia.dia.strftime("%d/%m") %>"></span>
+                                </div>
+                                <time datetime="<%= dia.dia %>"><%= dia.dia.strftime("%d/%m") %></time>
+                            </div>
+                            <% end %>
+                        </div>
+                    </div>
+                    <p class="dashboard-chart-note">Cada proprietário é contado uma vez por dia em cada categoria.</p>
+                    <details class="dashboard-chart-data">
+                        <summary>Ver números por dia</summary>
+                        <div class="table-wrap overflow-x-auto">
+                            <table class="table table-zebra table-sm">
+                                <thead><tr><th scope="col">Dia</th><th scope="col">Cadastrados</th><th scope="col">Alterados</th></tr></thead>
+                                <tbody>
+                                    <% historico_proprietarios.each do |dia|; altura_cadastros = dia.cadastros.zero? ? 0 : [5, (dia.cadastros * 100.0 / escala_historico).round].max; altura_alteracoes = dia.alteracoes.zero? ? 0 : [5, (dia.alteracoes * 100.0 / escala_historico).round].max %>
+                                    <tr><th scope="row"><time datetime="<%= dia.dia %>"><%= dia.dia.strftime("%d/%m") %></time></th><td><%= dia.cadastros %></td><td><%= dia.alteracoes %></td></tr>
+                                    <% end %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                </div>
+            </section>
+            <section class="card panel dashboard-fleet-card" aria-labelledby="frota-titulo">
+                <div class="card-body">
+                    <p class="eyebrow">Frota</p>
+                    <h2 class="card-title" id="frota-titulo">Tipos de veículo</h2>
+                    <p class="dashboard-fleet-description">Distribuição dos veículos cadastrados</p>
+                    <div class="dashboard-donut <%= total_veiculos == 0 ? "dashboard-donut-empty" : "" %>" style="--carros: <%= percentual_carros %>%" role="img" aria-label="<%= total_carros %> carros e <%= total_motos %> motos">
+                        <div class="dashboard-donut-center"><strong><%= total_veiculos %></strong><span>veículos</span></div>
+                    </div>
+                    <div class="dashboard-fleet-legend">
+                        <div><span><i class="dashboard-legend-dot dashboard-legend-cadastros"></i> Carros</span><strong><%= total_carros %></strong></div>
+                        <div><span><i class="dashboard-legend-dot dashboard-legend-alteracoes"></i> Motos</span><strong><%= total_motos %></strong></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

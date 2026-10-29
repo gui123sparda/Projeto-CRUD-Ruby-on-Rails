@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="pt-BR" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Histórico de cadastros</title>
+<link href="/css/daisyui.css" rel="stylesheet"><link href="/css/app.css" rel="stylesheet"></head><body>
+<%= render "includes/header" %>
+<% path = @historico_veiculos ? "/historico-veiculos.do" : "/historico.do"; report = @historico_veiculos ? "/relatorio-historico-veiculos.do" : "/relatorio-historico.do" %>
+<main class="page-shell"><div class="page-header"><div><p class="eyebrow">Rastreabilidade</p><h1>Histórico de cadastros</h1><p>Cadastros, alterações e exclusões lógicas, com os dados anteriores e posteriores.</p></div></div>
+<section class="card panel"><div class="card-body">
+<nav class="tabs tabs-border" aria-label="Tipo de histórico"><a class="tab <%= 'tab-active' unless @historico_veiculos %>" href="/historico.do">Proprietários</a><a class="tab <%= 'tab-active' if @historico_veiculos %>" href="/historico-veiculos.do">Veículos</a></nav>
+<form method="get" action="<%= path %>"><div class="form-grid">
+<% [["busca", "Nome, documento, placa ou conteúdo", "search"], ["registroId", "ID do cadastro", "number"], ["dataDe", "Desde", "date"], ["dataAte", "Até", "date"]].each do |key, label, type| %>
+<div class="field"><label for="<%= key %>"><%= label %></label><input class="input" id="<%= key %>" name="<%= key %>" type="<%= type %>" value="<%= @filtros[key] %>"></div><% end %>
+<div class="field"><label for="operacao">Operação</label><select class="select" name="operacao" id="operacao"><option value="">Todas</option><% %w[LEGADO MARCO_INICIAL CADASTRO ALTERACAO EXCLUSAO_LOGICA].each do |op| %><option <%= 'selected' if op == @filtros['operacao'] %>><%= op %></option><% end %></select></div>
+</div><div class="form-actions"><button class="btn" type="submit">Consultar histórico</button><button class="btn" type="submit" formaction="<%= report %>">Exportar histórico em PDF</button><a class="btn" href="<%= path %>">Limpar</a></div></form>
+<p class="field-hint">O marco inicial representa o estado na implantação do histórico. O usuário registrado é a conta do banco; este sistema não possui autenticação individual.</p>
+<p><%= @total %> eventos · Página <%= @pagina %> de <%= @paginas %></p>
+<div class="table-wrap"><table class="table table-zebra"><thead><tr><th>Data (Fortaleza)</th><th>Cadastro / ID</th><th>Operação</th><th>Dados preservados</th></tr></thead><tbody>
+<% @lista.each do |event| %><tr><td><%= event.ocorrido_em.in_time_zone.strftime('%d/%m/%Y %H:%M:%S') %></td><td><%= event.entidade %> / <%= event.registro_id %></td><td><%= event.operacao %></td><td><details><summary>Comparar antes e depois</summary><strong>Antes</strong><pre class="historico-json"><%= JSON.pretty_generate(event.antes) %></pre><strong>Depois</strong><pre class="historico-json"><%= JSON.pretty_generate(event.depois) %></pre><small>Usuário do banco: <%= event.usuario_banco %></small></details></td></tr><% end %>
+<% if @lista.empty? %><tr><td colspan="4">Nenhum evento encontrado para os filtros informados.</td></tr><% end %>
+</tbody></table></div><nav class="pagination" aria-label="Páginas do histórico"><% if @pagina > 1 %><a class="btn" href="?pagina=<%= @pagina - 1 %><%= @filtro_url %>">Anterior</a><% end; if @pagina < @paginas %><a class="btn" href="?pagina=<%= @pagina + 1 %><%= @filtro_url %>">Próxima</a><% end %></nav></div></section></main></body></html>

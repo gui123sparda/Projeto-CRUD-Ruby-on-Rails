@@ -1,0 +1,109 @@
+<% lista = @lista; caminho = @caminho; total = @total; pagina = @pagina; paginas = @paginas; filtro_url = @filtro_url; veiculo = @veiculo; nomes_proprietarios = @nomes_proprietarios %>
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <%= csrf_meta_tags %>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Veículos</title>
+    <link href="/css/daisyui.css" rel="stylesheet" type="text/css">
+    <link href="/css/app.css?v=correcoes-20261021-2" rel="stylesheet" type="text/css">
+    <script defer src="/js/filtros-consulta.js"></script>
+</head>
+<body>
+    <%= render "includes/header" %>
+    <main class="page-shell">
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Cadastros</p>
+                <h1>Veículos</h1>
+                <p>Consulte e gerencie os veículos cadastrados.</p>
+            </div>
+            <a class="btn btn-soft btn-neutral" href="/">← Voltar ao início</a>
+        </div>
+        <% if @mensagem != nil %>
+            <div class="alert alert-success" role="status"><%= h(@mensagem) %></div>
+        <% end %>
+        <% if @erro != nil %>
+            <div class="alert alert-error" role="alert"><%= h(@erro) %></div>
+        <% end %>
+        <section class="card panel">
+            <div class="card-body">
+                <div class="section-toolbar">
+                    <h2>Lista de veículos</h2>
+                    <div class="row-actions">
+                        <a class="btn btn-soft btn-error" href="/relatorio-veiculos.do?acao=listar<%= filtro_url %>">Gerar Relatório</a>
+                        <a class="btn btn-soft btn-success" href="<%= caminho %>?acao=consultarPlaca">Consultar placa</a>
+                        <a class="btn btn-soft btn-primary" href="<%= caminho %>?acao=novo">Novo veículo</a>
+                    </div>
+                </div>
+                <form class="compact-filter-bar" action="<%= caminho %>" method="get">
+                    <%= render "includes/filtros" %>
+                    <div class="form-actions"><button class="btn" type="submit">Filtrar</button><button class="btn" type="submit" formaction="/relatorio-veiculos.do">Exportar consulta em PDF</button><a class="btn" href="<%= caminho %>">Limpar</a></div>
+                </form>
+                <% if lista.empty? %>
+                    <p class="empty-state">Nenhum veículo cadastrado.</p>
+                <% else %>
+                    <div class="table-wrap">
+                        <table class="table table-zebra data-table">
+                            <thead>
+                                <tr><th>Placa</th><th>Tipo</th><th>RENAVAM</th><th>Chassi</th><th>Ano</th><th>Proprietário</th><th>Ações</th></tr>
+                            </thead>
+                            <tbody>
+                            <% lista.each do |veiculo| %>
+                                <tr>
+                                    <td><%= h(veiculo.placa) %></td>
+                                    <td><%= veiculo.tipo_rotulo %></td>
+                                    <td><%= h(veiculo.renavam) %></td>
+                                    <td><%= h(veiculo.chassi) %></td>
+                                    <td><%= veiculo.ano_fabricacao %></td>
+                                    <td><a href="/proprietarios.do?acao=visualizar&amp;id=<%= veiculo.id_proprietario %>"><%= h(nomes_proprietarios[veiculo.id_proprietario]) %></a></td>
+                                    <td>
+                                        <div class="row-actions">
+                                            <a class="btn btn-soft btn-success btn-sm" href="<%= caminho %>?acao=consultarPlaca&amp;placa=<%= h(veiculo.placa) %>">Consultar placa</a>
+                                            <a class="btn btn-soft btn-warning btn-sm" href="<%= caminho %>?acao=editar&amp;id=<%= veiculo.id %>">Editar</a>
+                                            <form class="inline-form" action="<%= caminho %>" method="post">
+                                                <input type="hidden" name="acao" value="excluir">
+                                                <input type="hidden" name="id" value="<%= veiculo.id %>">
+                                                <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+                                                <button class="btn btn-error btn-sm" type="submit">Excluir</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% end %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% end %>
+                <% if total > 0 %>
+                    <nav class="pagination" aria-label="Páginas de veículos">
+                        <% primeira_pagina = [1, [pagina - 2, paginas - 4].min].max; ultima_pagina = [paginas, primeira_pagina + 4].min %>
+                        <% if pagina > 1 %>
+                            <a class="btn btn-primary btn-sm pagination-step" href="<%= caminho %>?pagina=<%= pagina - 1 %><%= filtro_url %>">Anterior</a>
+                        <% else %>
+                            <button class="btn btn-primary btn-sm pagination-step" type="button" disabled>Anterior</button>
+                        <% end %>
+                        <form class="pagination-pages" action="<%= caminho %>" method="get">
+                            <%= render "includes/filtros-paginacao" %>
+                            <div class="join">
+                                <% (primeira_pagina..ultima_pagina).each do |numero_pagina| %>
+                                    <input class="join-item btn btn-primary btn-sm btn-square" type="radio" name="pagina" value="<%= numero_pagina %>" aria-label="<%= numero_pagina %>" title="Página <%= numero_pagina %> de <%= paginas %>" <%= (numero_pagina == pagina ? "checked aria-current=\"page\"" : "").html_safe %> onchange="this.form.requestSubmit()">
+                                <% end %>
+                            </div>
+                            <noscript><button class="btn btn-primary btn-sm" type="submit">Ir para página</button></noscript>
+                        </form>
+                        <% if pagina < paginas %>
+                            <a class="btn btn-primary btn-sm pagination-step" href="<%= caminho %>?pagina=<%= pagina + 1 %><%= filtro_url %>">Próximo</a>
+                        <% else %>
+                            <button class="btn btn-primary btn-sm pagination-step" type="button" disabled>Próximo</button>
+                        <% end %>
+                    </nav>
+                <% end %>
+                <p class="pagination-total">Nesta página: <%= lista.size %> <%= lista.size == 1 ? "registro" : "registros" %> · Total: <%= total %> <%= total == 1 ? "registro" : "registros" %></p>
+            </div>
+        </section>
+        <p class="related-link"><a class="btn btn-soft btn-success" href="/proprietarios.do">Ver proprietários</a></p>
+    </main>
+</body>
+</html>

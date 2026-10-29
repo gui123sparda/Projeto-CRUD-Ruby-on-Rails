@@ -1,0 +1,92 @@
+<% caminho = @caminho; proprietario = @proprietario; veiculo = @veiculo; proprietarios = @proprietarios; ano_informado = @ano_informado; proprietario_selecionado = @proprietario_selecionado %>
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <%= csrf_meta_tags %>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cadastro de veículo</title>
+    <link href="/css/daisyui.css" rel="stylesheet" type="text/css">
+    <link href="/css/app.css" rel="stylesheet" type="text/css">
+    <script src="/js/consulta-placa.js" defer></script>
+</head>
+<body>
+    <%= render "includes/header" %>
+    <main class="page-shell">
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Veículos</p>
+                <h1><%= veiculo.id == nil ? "Novo veículo" : "Editar veículo" %></h1>
+                <p>Selecione primeiro o proprietário para continuar o cadastro.</p>
+            </div>
+            <a class="btn btn-soft btn-neutral" href="/">← Voltar ao início</a>
+        </div>
+        <% if @erro != nil %>
+            <div class="alert alert-error" role="alert"><%= h(@erro) %></div>
+        <% end %>
+        <section class="card panel form-card">
+            <div class="card-body">
+                <form action="<%= caminho %>" method="post" accept-charset="UTF-8">
+                    <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+                    <input type="hidden" name="acao" value="salvar">
+                    <input type="hidden" name="id" value="<%= h(veiculo.id) %>">
+                                            <div class="field field-wide">
+                            <label for="idProprietario">Proprietário</label>
+                            <select class="select" id="idProprietario" name="idProprietario" required>
+                                <option value="">Selecione</option>
+                                <% proprietarios.each do |proprietario| %>
+                                    <option value="<%= proprietario.id %>" <%= proprietario.id.to_s == proprietario_selecionado ? "selected" : "" %>>
+                                        <%= h(proprietario.nome) %> — <%= h(proprietario.cpf_cnpj) %>
+                                    </option>
+                                <% end %>
+                            </select>
+                        </div><p class="field-hint">1. Selecione o proprietário. 2. Preencha os dados do veículo.</p>
+                    <div class="form-actions">
+                        <span class="field-hint">Não encontrou o proprietário?</span>
+                        <a class="btn" href="/proprietarios.do?acao=novo">Cadastrar proprietário</a>
+                    </div>
+                    <fieldset class="fieldset" id="dados-veiculo" <%= proprietario_selecionado == nil || proprietario_selecionado.empty? ? "hidden disabled" : "" %>>
+                    <legend class="fieldset-legend">Dados do veículo</legend>
+                    <div class="form-actions"><button class="btn" type="button" data-gerar-ficticios="veiculo">Gerar dados fictícios</button><span class="field-hint" data-aviso-ficticios role="status"></span></div>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="placa">Placa</label>
+                            <input class="input" id="placa" name="placa" type="text" value="<%= h(veiculo.placa) %>" minlength="7" pattern="[A-Za-z]{3}-?[0-9][A-Za-z0-9][0-9]{2}" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-describedby="placa-instrucao" placeholder="ABC1D23" required>
+                            <small id="placa-instrucao" class="field-hint">Formato antigo ABC1234 ou Mercosul ABC1D23.</small>
+                        </div>
+                        <fieldset class="field field-wide vehicle-type-field">
+                            <legend>Tipo de veículo</legend>
+                            <div class="radio-group">
+                                <label><input class="radio radio-primary" type="radio" name="tipo" value="CARRO" <%= veiculo.tipo == "CARRO" ? "checked" : "" %>> Carro</label>
+                                <label><input class="radio radio-primary" type="radio" name="tipo" value="MOTO" <%= veiculo.tipo == "MOTO" ? "checked" : "" %>> Moto</label>
+                            </div>
+                        </fieldset>
+                        <div class="field">
+                            <label for="renavam">RENAVAM</label>
+                            <input class="input" id="renavam" name="renavam" value="<%= h(veiculo.renavam) %>" maxlength="11" placeholder="11 dígitos" required>
+                        </div>
+                        <div class="field">
+                            <label for="chassi">Chassi</label>
+                            <input class="input" id="chassi" name="chassi" value="<%= h(veiculo.chassi) %>" maxlength="17" placeholder="17 caracteres" required>
+                        </div>
+                        <div class="field">
+                            <label for="anoFabricacao">Ano de fabricação</label>
+                            <input class="input" id="anoFabricacao" name="anoFabricacao" type="number" min="1900" max="<%= Date.current.year + 1 %>" value="<%= h(ano_informado) %>" aria-describedby="ano-instrucao" required>
+                            <small id="ano-instrucao" class="field-hint">Ex.: 2024.</small>
+                        </div>
+
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-soft btn-primary" type="submit">Salvar</button>
+                        <a class="btn btn-soft btn-neutral" href="<%= caminho %>">Cancelar</a>
+                    </div>
+                    </fieldset>
+                </form>
+            </div>
+        </section>
+        <% if proprietarios.empty? %>
+            <div class="alert alert-warning related-link" role="status"><span>Cadastre um <a href="/proprietarios.do?acao=novo">proprietário</a> antes de salvar um veículo.</span></div>
+        <% end %>
+    </main>
+</body>
+</html>

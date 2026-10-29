@@ -1,0 +1,14 @@
+<% vehicle = @nomes_proprietarios.present? || @caminho == "/veiculos.do"; fields = vehicle ? FiltrosConsulta::VEICULO : FiltrosConsulta::PROPRIETARIO; selected = @filtros["campo"].presence || fields.first.first; config = fields.find { |f| f.first == selected } || fields.first; value = @filtros[selected]; options = config[2] == "select" %>
+<div class="field filter-selector"><label for="campo-filtro">Campo de pesquisa</label>
+<select class="select" id="campo-filtro" name="campo" data-campo-filtro>
+<% fields.each do |field| %><option value="<%= field[0] %>" data-tipo="<%= field[2] %>" data-opcoes="<%= field[3] %>" <%= "selected" if field[0] == selected %>><%= field[1] %></option><% end %>
+</select></div>
+<div class="field filter-value"><label for="<%= options ? 'opcao-filtro' : 'valor-filtro' %>" data-label-valor>Valor da pesquisa</label>
+<input class="input" id="valor-filtro" name="valor" data-valor-filtro type="<%= options ? 'text' : config[2] %>" value="<%= value %>" maxlength="150" placeholder="Digite para pesquisar" <%= "hidden disabled".html_safe if options %>>
+<select class="select" id="opcao-filtro" name="valor" data-opcao-filtro <%= "hidden disabled".html_safe unless options %>><option value="">Todos</option>
+<% if options; config[3].split("|").each do |item|; key, label = item.split(":", 2) %><option value="<%= key %>" <%= "selected" if key == value %>><%= label %></option><% end; end %>
+</select></div>
+<% if vehicle %>
+<div class="field"><label for="tipo-filtro">Tipo de veículo</label><select class="select" id="tipo-filtro" name="tipo"><option value="">Todos</option><% { "CARRO" => "Carro", "MOTO" => "Moto" }.each do |key, label| %><option value="<%= key %>" <%= "selected" if @filtros["tipo"] == key %>><%= label %></option><% end %></select></div>
+<div class="field"><label for="placa-tipo-filtro">Tipo de placa</label><select class="select" id="placa-tipo-filtro" name="modeloPlaca"><option value="">Todas</option><% { "ANTIGA" => "Pré-Mercosul", "MERCOSUL" => "Mercosul" }.each do |key, label| %><option value="<%= key %>" <%= "selected" if @filtros["modeloPlaca"] == key %>><%= label %></option><% end %></select></div>
+<% end %>

@@ -1,0 +1,101 @@
+<% total = @total; pagina = @pagina; paginas = @paginas; proprietario = @proprietario; veiculo = @veiculo; veiculos = @veiculos %>
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <%= csrf_meta_tags %>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Veículos do proprietário</title>
+    <link href="/css/daisyui.css" rel="stylesheet" type="text/css">
+    <link href="/css/app.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <%= render "includes/header" %>
+    <main class="page-shell">
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Proprietário</p>
+                <h1>Veículos de <%= h(proprietario.nome) %></h1>
+                <p><%= h(formatar_documento(proprietario.cpf_cnpj)) %></p>
+            </div>
+            <a class="btn btn-soft btn-neutral" href="/proprietarios.do">← Voltar aos proprietários</a>
+        </div>
+        <% if @mensagem != nil %>
+            <div class="alert alert-success" role="status"><%= h(@mensagem) %></div>
+        <% end %>
+        <% if @erro != nil %>
+            <div class="alert alert-error" role="alert"><%= h(@erro) %></div>
+        <% end %>
+        <section class="card panel">
+            <div class="card-body">
+                <div class="section-toolbar">
+                    <h2>Veículos vinculados</h2>
+                    <div class="row-actions">
+                        <a class="btn btn-soft btn-success" href="/veiculos.do?acao=consultarPlaca">Consultar placa</a>
+                        <a class="btn btn-soft btn-primary" href="/veiculos.do?acao=novo&amp;idProprietario=<%= proprietario.id %>">Novo veículo</a>
+                    </div>
+                </div>
+                <% if veiculos.empty? %>
+                    <p class="empty-state">Este proprietário ainda não possui veículos.</p>
+                <% else %>
+                    <div class="table-wrap">
+                        <table class="table table-zebra data-table">
+                            <thead><tr><th>Placa</th><th>Tipo</th><th>RENAVAM</th><th>Chassi</th><th>Ano</th><th>Ações</th></tr></thead>
+                            <tbody>
+                            <% veiculos.each do |veiculo| %>
+                                <tr>
+                                    <td><%= h(veiculo.placa) %></td>
+                                    <td><%= veiculo.tipo_rotulo %></td>
+                                    <td><%= h(veiculo.renavam) %></td>
+                                    <td><%= h(veiculo.chassi) %></td>
+                                    <td><%= veiculo.ano_fabricacao %></td>
+                                    <td>
+                                        <div class="row-actions">
+                                            <a class="btn btn-soft btn-success btn-sm" href="/veiculos.do?acao=consultarPlaca&amp;placa=<%= h(veiculo.placa) %>">Consultar placa</a>
+                                            <a class="btn btn-soft btn-warning btn-sm" href="/veiculos.do?acao=editar&amp;id=<%= veiculo.id %>">Editar</a>
+                                            <form class="inline-form" action="/veiculos.do" method="post">
+                                                <input type="hidden" name="acao" value="excluir">
+                                                <input type="hidden" name="id" value="<%= veiculo.id %>">
+                                                <input type="hidden" name="idProprietarioRetorno" value="<%= proprietario.id %>">
+                                                <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+                                                <button class="btn btn-error btn-sm" type="submit">Excluir</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% end %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% end %>
+                <% if total > 0 %>
+                    <nav class="pagination" aria-label="Páginas dos veículos deste proprietário">
+                        <% primeira_pagina = [1, [pagina - 2, paginas - 4].min].max; ultima_pagina = [paginas, primeira_pagina + 4].min %>
+                        <% if pagina > 1 %>
+                            <a class="btn btn-primary btn-sm pagination-step" href="/proprietarios.do?acao=veiculos&amp;id=<%= proprietario.id %>&amp;pagina=<%= pagina - 1 %>">Anterior</a>
+                        <% else %>
+                            <button class="btn btn-primary btn-sm pagination-step" type="button" disabled>Anterior</button>
+                        <% end %>
+                        <form class="pagination-pages" action="/proprietarios.do" method="get">
+                            <input type="hidden" name="acao" value="veiculos">
+                            <input type="hidden" name="id" value="<%= proprietario.id %>">
+                            <div class="join">
+                                <% (primeira_pagina..ultima_pagina).each do |numero_pagina| %>
+                                    <input class="join-item btn btn-primary btn-sm btn-square" type="radio" name="pagina" value="<%= numero_pagina %>" aria-label="<%= numero_pagina %>" title="Página <%= numero_pagina %> de <%= paginas %>" <%= (numero_pagina == pagina ? "checked aria-current=\"page\"" : "").html_safe %> onchange="this.form.requestSubmit()">
+                                <% end %>
+                            </div>
+                            <noscript><button class="btn btn-primary btn-sm" type="submit">Ir para página</button></noscript>
+                        </form>
+                        <% if pagina < paginas %>
+                            <a class="btn btn-primary btn-sm pagination-step" href="/proprietarios.do?acao=veiculos&amp;id=<%= proprietario.id %>&amp;pagina=<%= pagina + 1 %>">Próximo</a>
+                        <% else %>
+                            <button class="btn btn-primary btn-sm pagination-step" type="button" disabled>Próximo</button>
+                        <% end %>
+                    </nav>
+                <% end %>
+                <p class="pagination-total">Nesta página: <%= veiculos.size %> <%= veiculos.size == 1 ? "registro" : "registros" %> · Total: <%= total %> <%= total == 1 ? "registro" : "registros" %></p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

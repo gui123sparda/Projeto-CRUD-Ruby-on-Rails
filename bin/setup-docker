@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+if [ ! -f .env ]; then
+  umask 077
+  {
+    printf 'DB_NAME=rails_crud_production\nDB_USER=rails_crud\nDB_PASSWORD='
+    openssl rand -hex 32
+    printf 'SECRET_KEY_BASE='
+    openssl rand -hex 64
+    printf 'APP_PORT=6767\n'
+  } > .env
+  printf '.env criado com segredos locais aleatórios.\n'
+fi
+exec docker compose up --build -d --wait web

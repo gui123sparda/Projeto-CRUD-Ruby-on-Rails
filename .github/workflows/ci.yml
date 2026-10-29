@@ -1,0 +1,23 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Generate ephemeral environment
+        run: |
+          echo "DB_PASSWORD=$(openssl rand -hex 32)" >> .env
+          echo "SECRET_KEY_BASE=$(openssl rand -hex 64)" >> .env
+      - name: Test Rails, lint and security in Docker
+        run: docker compose --profile test run --build --rm test
+      - name: Build production and check health
+        run: docker compose up --build -d --wait web
+      - name: Stop containers
+        if: always()
+        run: docker compose --profile test down

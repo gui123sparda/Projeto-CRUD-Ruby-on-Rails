@@ -1,0 +1,17 @@
+/.git/
+/.gitignore
+/.idea/
+/.bundle
+/.env*
+/config/master.key
+/config/credentials/*.key
+/log/*
+!/log/.keep
+/tmp/*
+!/tmp/.keep
+/storage/*
+!/storage/.keep
+/.github
+/.devcontainer
+/.dockerignore
+/Dockerfile*

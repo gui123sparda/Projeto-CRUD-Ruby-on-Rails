@@ -1,0 +1,111 @@
+<% lista = @lista; totais_veiculos = @totais_veiculos; caminho = @caminho; tipo_pessoa = @tipo_pessoa; total = @total; pagina = @pagina; paginas = @paginas; filtro_url = @filtro_url; proprietario = @proprietario; empresa = @empresa %>
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <%= csrf_meta_tags %>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= (tipo_pessoa == "PJ") ? "Empresas" : (tipo_pessoa == "PF") ? "Pessoas físicas" : "Proprietários" %></title>
+    <link href="/css/daisyui.css" rel="stylesheet" type="text/css">
+    <link href="/css/app.css?v=correcoes-20261021-2" rel="stylesheet" type="text/css">
+    <script defer src="/js/filtros-consulta.js"></script>
+    <script defer src="/js/proprietarios-filtro.js?v=campo-1"></script>
+    <script defer src="/js/exclusao-proprietario.js?v=exclusao-3"></script>
+</head>
+<body>
+    <%= render "includes/header" %>
+    <main class="page-shell">
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Cadastros</p>
+                <h1><%= (tipo_pessoa == "PF") ? "Pessoas físicas" : (tipo_pessoa == "PJ") ? "Empresas" : "Proprietários" %></h1>
+                <p><%= (tipo_pessoa == "PJ") ? "Consulte e gerencie as empresas cadastradas." : "Consulte e gerencie os proprietários cadastrados." %></p>
+            </div>
+            <a class="btn btn-soft btn-neutral" href="/">← Voltar ao início</a>
+        </div>
+        <% if @mensagem != nil %>
+            <div class="alert alert-success" role="status"><%= h(@mensagem) %></div>
+        <% end %>
+        <% if @erro != nil %>
+            <div class="alert alert-error" role="alert"><%= h(@erro) %></div>
+        <% end %>
+        <section class="card panel">
+            <div class="card-body">
+                <div class="section-toolbar">
+                    <h2><%= (tipo_pessoa == "PJ") ? "Lista de empresas" : "Lista de proprietários" %></h2>
+                    <a class="btn btn-soft btn-primary" href="<%= caminho %>?acao=novo&amp;tipoPessoa=<%= tipo_pessoa %>"><%= (tipo_pessoa == "PJ") ? "Nova empresa" : "Novo proprietário" %></a>
+                </div>
+                <form class="compact-filter-bar" action="<%= caminho %>" method="get" data-live-filter>
+                    <input type="hidden" name="tipoPessoa" value="<%= tipo_pessoa %>">
+                    <%= render "includes/filtros" %>
+                    <button class="btn btn-soft btn-success" type="submit">Filtrar</button>
+                    <button class="btn btn-soft btn-error" type="submit" formaction="/relatorio-proprietarios.do">Gerar Relatório</button>
+                    <a class="btn btn-soft btn-neutral" href="<%= caminho %>?tipoPessoa=<%= tipo_pessoa %>">Limpar</a>
+                </form>
+                <p id="busca-status" class="filter-status" role="status" aria-live="polite"></p>
+                <div id="proprietarios-resultados" data-total="<%= total %>">
+                <% if lista.empty? %>
+                    <p class="empty-state"><%= (tipo_pessoa == "PJ") ? "Nenhuma empresa encontrada." : "Nenhum proprietário encontrado." %></p>
+                <% else %>
+                    <div class="table-wrap">
+                        <table class="table table-zebra data-table">
+                            <thead>
+                                <tr><th><%= (tipo_pessoa == "PJ") ? "CNPJ" : "CPF/CNPJ" %></th><th><%= (tipo_pessoa == "PJ") ? "Razão social" : "Nome" %></th><th>Endereço</th><th>Ações</th></tr>
+                            </thead>
+                            <tbody>
+                            <% lista.each do |proprietario| %>
+                                <tr>
+                                    <td><%= h(formatar_documento(proprietario.cpf_cnpj)) %></td>
+                                    <td><%= h(proprietario.nome) %></td>
+                                    <td class="address-cell" title="<%= h(formatar_endereco(proprietario)) %>"><%= h(formatar_endereco(proprietario)) %></td>
+                                    <td>
+                                        <div class="row-actions">
+                                            <a class="btn btn-soft btn-success btn-sm" href="<%= caminho %>?acao=visualizar&amp;id=<%= proprietario.id %>">Visualizar</a>
+                                            <a class="btn btn-soft btn-warning btn-sm" href="<%= caminho %>?acao=editar&amp;id=<%= proprietario.id %>">Editar</a>
+                                            <a class="btn btn-soft btn-success btn-sm" href="<%= caminho %>?acao=veiculos&amp;id=<%= proprietario.id %>">Veículos</a>
+                                            <button class="btn btn-error btn-sm" type="button"
+                                                    data-excluir-proprietario
+                                                    data-id="<%= proprietario.id %>"
+                                                    data-nome="<%= h(proprietario.nome) %>"
+                                                    data-total-veiculos="<%= totais_veiculos[proprietario.id] %>">Excluir</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% end %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% end %>
+                <% if total > 0 %>
+                    <nav class="pagination" aria-label="Páginas de proprietários">
+                        <% primeira_pagina = [1, [pagina - 2, paginas - 4].min].max; ultima_pagina = [paginas, primeira_pagina + 4].min %>
+                        <% if pagina > 1 %>
+                            <a class="btn btn-primary btn-sm pagination-step" href="<%= caminho %>?pagina=<%= pagina - 1 %><%= filtro_url %>">Anterior</a>
+                        <% else %>
+                            <button class="btn btn-primary btn-sm pagination-step" type="button" disabled>Anterior</button>
+                        <% end %>
+                        <form class="pagination-pages" action="<%= caminho %>" method="get">
+                            <input type="hidden" name="tipoPessoa" value="<%= tipo_pessoa %>">
+                            <%= render "includes/filtros-paginacao" %>
+                            <div class="join">
+                                <% (primeira_pagina..ultima_pagina).each do |numero_pagina| %>
+                                    <input class="join-item btn btn-primary btn-sm btn-square" type="radio" name="pagina" value="<%= numero_pagina %>" aria-label="<%= numero_pagina %>" title="Página <%= numero_pagina %> de <%= paginas %>" <%= (numero_pagina == pagina ? "checked aria-current=\"page\"" : "").html_safe %> onchange="this.form.requestSubmit()">
+                                <% end %>
+                            </div>
+                            <noscript><button class="btn btn-primary btn-sm" type="submit">Ir para página</button></noscript>
+                        </form>
+                        <% if pagina < paginas %>
+                            <a class="btn btn-primary btn-sm pagination-step" href="<%= caminho %>?pagina=<%= pagina + 1 %><%= filtro_url %>">Próximo</a>
+                        <% else %>
+                            <button class="btn btn-primary btn-sm pagination-step" type="button" disabled>Próximo</button>
+                        <% end %>
+                    </nav>
+                <% end %>
+                <p class="pagination-total">Nesta página: <%= lista.size %> <%= lista.size == 1 ? "registro" : "registros" %> · Total: <%= total %> <%= total == 1 ? "registro" : "registros" %></p>
+                </div>
+            </div>
+        </section>
+    </main>
+    <%= render "proprietario/includes/modais-exclusao" %>
+</body>
+</html>
