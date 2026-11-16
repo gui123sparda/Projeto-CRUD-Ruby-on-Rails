@@ -1,6 +1,29 @@
 require "application_system_test_case"
 
 class CadastrosSystemTest < ApplicationSystemTestCase
+  test "vehicle owner search accepts names CPF and numeric or alphanumeric CNPJ" do
+    owner = Proprietario.create!(nome: "João Silva", cpf_cnpj: "52998224725")
+    company = Proprietario.create!(nome: "Empresa teste", cpf_cnpj: "11222333000181")
+    alpha_company = Proprietario.create!(nome: "Empresa alfa", cpf_cnpj: "12ABC34501DE35")
+    visit "/veiculos.do?acao=novo"
+
+    { "joao" => owner, "529.982.247-25" => owner, "11.222.333/0001-81" => company,
+      "12.abc.345/01de-35" => alpha_company }.each do |query, expected|
+      fill_in "buscaProprietario", with: query
+      assert_selector "#idProprietario option[value='#{expected.id}']", visible: :all
+      assert_selector "#idProprietario option", count: 2, visible: :all
+    end
+
+    fill_in "buscaProprietario", with: "inexistente"
+    assert_text "Nenhum proprietário encontrado."
+    fill_in "buscaProprietario", with: ""
+    assert_selector "#idProprietario option", count: 4, visible: :all
+    select "JOÃO SILVA — 52998224725", from: "idProprietario"
+    assert_selector "#dados-veiculo", visible: true
+    fill_in "buscaProprietario", with: "empresa"
+    assert_equal owner.id.to_s, find("#idProprietario").value
+  end
+
   setup do
     @protecao_anterior = ActionController::Base.allow_forgery_protection
     ActionController::Base.allow_forgery_protection = true

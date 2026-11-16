@@ -924,6 +924,9 @@ input[type="text"], input[type="search"], input:not([type]), textarea { text-tra
 .compact-filter-bar .input, .compact-filter-bar .select { width:100%; }
 .compact-filter-bar > .form-actions { margin:0; }
 .placa-figure .placa-hover-3d { aspect-ratio:var(--placa-proporcao); }
+.placa-figure .placa-hover-3d > img:first-child {
+    transform: rotate3d(var(--transform), 0, -10deg);
+}
 .owner-vehicles { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr)); gap:1rem; }
 .owner-vehicle .owner-vehicle-plate { display:block; max-width:100%; width:auto; height:130px; object-fit:contain; margin:1rem auto; }
 @media (max-width:600px) { .compact-filter-bar > .filter-value, .compact-filter-bar > .filter-selector { flex-basis:100%; } }

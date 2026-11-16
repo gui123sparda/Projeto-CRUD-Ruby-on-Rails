@@ -9,6 +9,7 @@
     <link href="/css/daisyui.css" rel="stylesheet" type="text/css">
     <link href="/css/app.css" rel="stylesheet" type="text/css">
     <script src="/js/consulta-placa.js" defer></script>
+    <script src="/js/selecao-proprietario.js" defer></script>
 </head>
 <body>
     <%= render "includes/header" %>
@@ -30,7 +31,12 @@
                     <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
                     <input type="hidden" name="acao" value="salvar">
                     <input type="hidden" name="id" value="<%= h(veiculo.id) %>">
-                                            <div class="field field-wide">
+                    <div class="field field-wide" id="pesquisa-proprietario" hidden>
+                        <label for="buscaProprietario">Pesquisar proprietário por nome, CPF ou CNPJ</label>
+                        <input class="input" type="search" id="buscaProprietario" placeholder="Digite o nome, CPF ou CNPJ" autocomplete="off" aria-controls="idProprietario" aria-describedby="resultado-busca-proprietario">
+                        <small class="field-hint" id="resultado-busca-proprietario" role="status"></small>
+                    </div>
+                    <div class="field field-wide">
                             <label for="idProprietario">Proprietário</label>
                             <select class="select" id="idProprietario" name="idProprietario" required>
                                 <option value="">Selecione</option>
